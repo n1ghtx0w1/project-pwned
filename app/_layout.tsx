@@ -1,4 +1,5 @@
 import { router, Stack, usePathname } from "expo-router";
+import { useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SessionProvider, useSession } from "../lib/sessionContext";
 import { supabase } from "../lib/supabase";
@@ -11,6 +12,28 @@ function Navigation() {
     await supabase.auth.signOut();
     router.replace("/login");
   };
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+  
+    const resetTimer = () => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        supabase.auth.signOut().then(() => {
+          router.replace("/login");
+        });
+      }, 10 * 60 * 1000); // 10 minutes
+    };
+  
+    const events = ["mousemove", "keydown", "touchstart"];
+    events.forEach((event) => window.addEventListener(event, resetTimer));
+    resetTimer(); // start on load
+  
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, resetTimer));
+      clearTimeout(timeout);
+    };
+  }, []);  
 
   return (
     <View style={styles.navbar}>
