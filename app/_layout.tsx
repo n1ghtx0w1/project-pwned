@@ -1,8 +1,9 @@
 import { router, Stack, usePathname } from "expo-router";
-import { useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
 import { SessionProvider, useSession } from "../lib/sessionContext";
 import { supabase } from "../lib/supabase";
+import { toastConfig } from "../lib/toastConfig";
 
 function Navigation() {
   const pathname = usePathname();
@@ -12,29 +13,7 @@ function Navigation() {
     await supabase.auth.signOut();
     router.replace("/login");
   };
-
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
   
-    const resetTimer = () => {
-      if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        supabase.auth.signOut().then(() => {
-          router.replace("/login");
-        });
-      }, 10 * 60 * 1000); // 10 minutes
-    };
-  
-    const events = ["mousemove", "keydown", "touchstart"];
-    events.forEach((event) => window.addEventListener(event, resetTimer));
-    resetTimer(); // start on load
-  
-    return () => {
-      events.forEach((event) => window.removeEventListener(event, resetTimer));
-      clearTimeout(timeout);
-    };
-  }, []);  
-
   return (
     <View style={styles.navbar}>
       <TouchableOpacity onPress={() => router.push("/")}>
@@ -76,6 +55,8 @@ export default function RootLayout() {
         <View style={styles.mainContent}>
           <Stack screenOptions={{ headerShown: false }} />
         </View>
+        {/* ✅ Add the Toast component inside the provider */}
+        <Toast config={toastConfig} />
       </SessionProvider>
 
       <View style={styles.footer}>
@@ -92,7 +73,6 @@ export default function RootLayout() {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   pageContainer: {
