@@ -1,5 +1,7 @@
 # Project Pwned
 
+![HeadGames Project Pwned](public/images/landing.png)
+
 Project Pwned is the start of a mobile & web application I'm working on. 
 The initial project is to build the features below.
 
