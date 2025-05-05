@@ -1,22 +1,20 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import ProtectedRoute from "../../components/ProtectedRoute";
 import { useSession } from "../../lib/sessionContext";
 import { supabase } from "../../lib/supabase";
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
   const { session } = useSession();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!session?.user) {
-        router.replace("/login");
-      }
-    }, 50); // Delay ensures router is mounted
-  
-    return () => clearTimeout(timer);
-  }, [session]);
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -35,9 +33,7 @@ export default function ChangePasswordScreen() {
       return;
     }
 
-    const { error: updateError } = await supabase.auth.updateUser({
-      password,
-    });
+    const { error: updateError } = await supabase.auth.updateUser({ password });
 
     if (updateError) {
       setError(updateError.message);
@@ -47,9 +43,9 @@ export default function ChangePasswordScreen() {
     }
   }
 
-  if (!session?.user) return null;
   return (
-    <View style={styles.container}>
+    <ProtectedRoute>
+      <View style={styles.container}>
         <Text style={styles.ascii}>
 {`
   CCCC  H   H  AAAAA  N   N  GGGG  EEEEE       PPPPP   AAAAA  SSSS  SSSS  W   W   OOO  RRRR   DDDD
@@ -58,101 +54,102 @@ export default function ChangePasswordScreen() {
  C      H   H  A   A  N  NN G   G  E           P       A   A     S     S W W W  O   O R  R   D   D
   CCCC  H   H  A   A  N   N  GGGG  EEEEE       P       A   A SSSS  SSSS   W W    OOO  R   R  DDDD
 `}
-</Text>  
-      <TextInput
-        style={styles.input}
-        placeholder="New Password"
-        placeholderTextColor="#555"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        placeholderTextColor="#555"
-        secureTextEntry
-        value={confirm}
-        onChangeText={setConfirm}
-      />
-  
-      {error !== "" && <Text style={styles.error}>{error}</Text>}
-  
-      <TouchableOpacity style={styles.button} onPress={handleChange}>
-        <Text style={styles.buttonText}>Update Password</Text>
-      </TouchableOpacity>
-  
-      <TouchableOpacity
-        style={styles.secondary}
-        onPress={() => router.replace("/settings/profile")}
-      >
-        <Text style={styles.buttonText}>Back</Text>
-      </TouchableOpacity>
-    </View>
+        </Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="New Password"
+          placeholderTextColor="#555"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm Password"
+          placeholderTextColor="#555"
+          secureTextEntry
+          value={confirm}
+          onChangeText={setConfirm}
+        />
+
+        {error !== "" && <Text style={styles.error}>{error}</Text>}
+
+        <TouchableOpacity style={styles.button} onPress={handleChange}>
+          <Text style={styles.buttonText}>Update Password</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.secondary}
+          onPress={() => router.replace("/settings/profile")}
+        >
+          <Text style={styles.buttonText}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    </ProtectedRoute>
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
-      backgroundColor: "#000",
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      paddingHorizontal: 20,
-    },
-    title: {
-      fontFamily: "Courier",
-      fontSize: 20,
-      color: "#00FF00",
-      marginBottom: 20,
-      textAlign: "center",
-    },
-    input: {
-      width: "100%",
-      maxWidth: 300,
-      height: 30,
-      color: "#FFF",
-      fontFamily: "Courier",
-      fontSize: 16,
-      padding: 4,
-      borderWidth: 0,
-      backgroundColor: "transparent",
-      marginBottom: 10,
-    },
-    error: {
-      fontFamily: "Courier",
-      color: "red",
-      marginTop: 10,
-    },
-    button: {
-      width: "100%",
-      maxWidth: 300,
-      borderColor: "#00FF00",
-      borderWidth: 1,
-      paddingVertical: 8,
-      alignItems: "center",
-      marginTop: 10,
-    },
-    secondary: {
-      width: "100%",
-      maxWidth: 300,
-      marginTop: 12,
-      borderColor: "#00FF00",
-      borderWidth: 1,
-      paddingVertical: 8,
-      alignItems: "center",
-    },
-    buttonText: {
-      fontFamily: "Courier",
-      color: "#00FF00",
-      fontSize: 16,
-    },
-    ascii: {
-        fontFamily: "Courier",
-        color: "#00FF00",
-        fontSize: 10,
-        textAlign: "center",
-        marginBottom: 16,
-      },      
-  });
-  
+  container: {
+    backgroundColor: "#000",
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontFamily: "Courier",
+    fontSize: 20,
+    color: "#00FF00",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    width: "100%",
+    maxWidth: 300,
+    height: 30,
+    color: "#FFF",
+    fontFamily: "Courier",
+    fontSize: 16,
+    padding: 4,
+    borderWidth: 0,
+    backgroundColor: "transparent",
+    marginBottom: 10,
+  },
+  error: {
+    fontFamily: "Courier",
+    color: "red",
+    marginTop: 10,
+  },
+  button: {
+    width: "100%",
+    maxWidth: 300,
+    borderColor: "#00FF00",
+    borderWidth: 1,
+    paddingVertical: 8,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  secondary: {
+    width: "100%",
+    maxWidth: 300,
+    marginTop: 12,
+    borderColor: "#00FF00",
+    borderWidth: 1,
+    paddingVertical: 8,
+    alignItems: "center",
+  },
+  buttonText: {
+    fontFamily: "Courier",
+    color: "#00FF00",
+    fontSize: 16,
+  },
+  ascii: {
+    fontFamily: "Courier",
+    color: "#00FF00",
+    fontSize: 10,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+});

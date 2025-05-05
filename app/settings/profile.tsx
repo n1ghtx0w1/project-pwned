@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import ProtectedRoute from "../../components/ProtectedRoute";
 import bannedWords from "../../lib/bannedWords";
 import { useSession } from "../../lib/sessionContext";
 import { supabase } from "../../lib/supabase";
@@ -17,28 +18,12 @@ export default function EditProfileScreen() {
   const { session } = useSession();
   const router = useRouter();
 
-  const [mounted, setMounted] = useState(false);
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // ✅ Mark safe to interact with router
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // ✅ Guard route access
-  useEffect(() => {
-    if (!mounted || session === undefined) return;
-
-    if (!session?.user?.id) {
-      router.replace("/login");
-    }
-  }, [mounted, session]);
-
-  // ✅ Load profile only when mounted & session ready
-  useEffect(() => {
-    if (!mounted || !session?.user?.id) return;
+    if (!session?.user?.id) return;
 
     async function loadProfile() {
       const { data } = await supabase
@@ -53,9 +38,7 @@ export default function EditProfileScreen() {
     }
 
     loadProfile();
-  }, [mounted, session]);
-
-  if (!mounted || session === undefined) return null;
+  }, [session]);
 
   function containsBannedWords(text: string) {
     const lower = text.toLowerCase();
@@ -106,68 +89,70 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require("../../assets/avatars/default.png")}
-        style={styles.avatar}
-      />
-
-      <View style={styles.form}>
-        <Text style={styles.label}>Hacker Alias</Text>
-        <TextInput
-          style={styles.input}
-          value={username}
-          onChangeText={setUsername}
-          placeholder="Enter alias"
-          placeholderTextColor="#555"
+    <ProtectedRoute>
+      <View style={styles.container}>
+        <Image
+          source={require("../../assets/avatars/default.png")}
+          style={styles.avatar}
         />
 
-        {error && <Text style={styles.error}>{error}</Text>}
+        <View style={styles.form}>
+          <Text style={styles.label}>Hacker Alias</Text>
+          <TextInput
+            style={styles.input}
+            value={username}
+            onChangeText={setUsername}
+            placeholder="Enter alias"
+            placeholderTextColor="#555"
+          />
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          <Text style={styles.buttonText}>
-            {saving ? "Saving..." : "Save Changes"}
-          </Text>
-        </TouchableOpacity>
+          {error && <Text style={styles.error}>{error}</Text>}
 
-        <TouchableOpacity
-          style={styles.secondary}
-          onPress={() => router.replace("/profile")}
-        >
-          <Text style={styles.buttonText}>Back</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            <Text style={styles.buttonText}>
+              {saving ? "Saving..." : "Save Changes"}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-        style={styles.secondary}
-        onPress={() => router.push("/settings/change-password")}
-        >
-        <Text style={styles.buttonText}>Change Password</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondary}
+            onPress={() => router.replace("/profile")}
+          >
+            <Text style={styles.buttonText}>Back</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.secondary}
-          onPress={async () => {
-            await supabase.auth.signOut();
-            router.replace("/login");
-          }}
-        >
-          <Text style={styles.buttonText}>Logout</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondary}
+            onPress={() => router.push("/settings/change-password")}
+          >
+            <Text style={styles.buttonText}>Change Password</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.delete}
-          onPress={() => router.push("/settings/account")}
-        >
-          <Text style={[styles.buttonText, { color: "red" }]}>
-            Delete Account
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondary}
+            onPress={async () => {
+              await supabase.auth.signOut();
+              router.replace("/login");
+            }}
+          >
+            <Text style={styles.buttonText}>Logout</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.delete}
+            onPress={() => router.push("/settings/account")}
+          >
+            <Text style={[styles.buttonText, { color: "red" }]}>
+              Delete Account
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </ProtectedRoute>
   );
 }
 

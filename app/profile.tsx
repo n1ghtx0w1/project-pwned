@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import ProtectedRoute from "../components/ProtectedRoute";
 import { useSession } from "../lib/sessionContext";
 import { supabase } from "../lib/supabase";
 
@@ -8,21 +9,11 @@ export default function ViewProfileScreen() {
   const { session } = useSession();
   const router = useRouter();
 
-  const [mounted, setMounted] = useState(false); // ✅ avoid early routing
   const [username, setUsername] = useState("");
   const [rank, setRank] = useState("Script Kiddie");
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted || session === undefined) return;
-
-    if (!session?.user?.id) {
-      router.replace("/login");
-      return;
-    }
+    if (!session?.user?.id) return;
 
     async function loadProfile() {
       const { data } = await supabase
@@ -38,9 +29,7 @@ export default function ViewProfileScreen() {
     }
 
     loadProfile();
-  }, [mounted, session]);
-
-  if (!mounted || session === undefined) return null;
+  }, [session]);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -48,31 +37,33 @@ export default function ViewProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require("../assets/avatars/default.png")}
-        style={styles.avatar}
-      />
+    <ProtectedRoute>
+      <View style={styles.container}>
+        <Image
+          source={require("../assets/avatars/default.png")}
+          style={styles.avatar}
+        />
 
-      <View style={styles.content}>
-        <Text style={styles.label}>Hacker Alias</Text>
-        <Text style={styles.value}>{username}</Text>
+        <View style={styles.content}>
+          <Text style={styles.label}>Hacker Alias</Text>
+          <Text style={styles.value}>{username}</Text>
 
-        <Text style={styles.label}>Rank</Text>
-        <Text style={styles.value}>{rank}</Text>
+          <Text style={styles.label}>Rank</Text>
+          <Text style={styles.value}>{rank}</Text>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push("/settings/profile")}
-        >
-          <Text style={styles.buttonText}>Edit Profile</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push("/settings/profile")}
+          >
+            <Text style={styles.buttonText}>Edit Profile</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogout}>
-          <Text style={styles.buttonText}>Logout</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleLogout}>
+            <Text style={styles.buttonText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </ProtectedRoute>
   );
 }
 
